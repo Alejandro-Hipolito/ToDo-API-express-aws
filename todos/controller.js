@@ -1,94 +1,32 @@
 const express = require('express')
+const db = require('../db')
 
 let tasks = []
 
-// const createTodo = (request, response) => {
-//     response.json({
-//         successful: true,
-//         data: request.body,
-//     })
-// }
 
-// const getTodos = (request, response) => {
-//     response.json({
-//         successful:true,
-//         data: [{id: 1, text: 'Welcome to the home page'}],
-//     })
-// }
+const createTask = async (request, response) => {
+    try {
+        const sql = 'INSERT INTO tasks(title, description, status, createdAt) VALUES (?, ?, ?, ?)';
+        const values = [title, description, status, task.createdAt];
+        const [results, fields] = await db.promise().query(sql, values);
 
-// const hello = (request, response) => {
-//     response.json({
-//         successful: true,
-//         data: [{id: 1, text: 'Learn sss'}]
-//     })
-// }
+        const insertedTask = await db.promise().query('SELECT * FROM tasks WHERE id = ?', [results.insertId]);
 
+        response.json({
+            successful: true,
+            message: 'Nueva tarea creada exitosamente',
+            data: insertedTask[0][0]
+        });
 
-const createTask = (request, response) => {
-    const { title, description, status } = request.body;
-
-    // Verificar campos requeridos
-    if (!title || !description || !status) {
-        return response.status(400).json({
+        
+    } catch (error) {
+        console.error('Error:', error.message);
+        response.status(500).json({
             successful: false,
-            error: 'Faltan campos obligatorios.'
+            error: 'Error al insertar la tarea en la base de datos.',
+            details: error.message
         });
     }
-
-    // Verificar status
-    if (status !== 'pendiente' && status !== 'completado' && status !== 'en progreso') {
-        return response.status(400).json({
-            successful: false,
-            error: 'El estado de la tarea debe ser "pendiente", "completado" o "en progreso".',
-        });
-    }
-
-    const task = {
-        title,
-        description,
-        status,
-        createdAt: new Date().toISOString()
-    };
-
-    // Establecer conexión
-    const db = request.db;
-
-    // Insertar datos 
-    const sql = 'INSERT INTO tasks(title, description, status, createdAt) VALUES (?, ?, ?, ?)';
-    const values = [title, description, status, task.createdAt];
-
-    db.query(sql, values, (err, results) => {
-        if (err) {
-            console.error('Error al insertar la tarea en la base de datos:', err.message);
-            return response.status(500).json({
-                successful: false,
-                error: 'Error al insertar la tarea en la base de datos.',
-                details: err 
-            });
-        }
-
-        const insertedTaskId = results.insertId;
-
-        // Obtener la tarea  insertada desde la bd
-        db.query('SELECT * FROM tasks WHERE id = ?', [insertedTaskId], (selectErr, selectResults) => {
-            if (selectErr) {
-                console.error('Error al obtener la tarea recién insertada:', selectErr.message);
-                return response.status(500).json({
-                    successful: false,
-                    error: 'Error al obtener la tarea recién insertada de la base de datos.',
-                    details: selectErr
-                });
-            }
-
-            const newTask = selectResults[0];
-
-            response.json({
-                successful: true,
-                message: 'Nueva tarea creada exitosamente',
-                data: newTask
-            });
-        });
-    });
 };
 
 

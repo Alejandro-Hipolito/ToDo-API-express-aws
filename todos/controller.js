@@ -51,7 +51,7 @@ const createTask = (request, response) => {
 
 
     const newTask = {
-        id: tasks.length +1, //Testeo
+        // id: tasks.length +1, //Testeo
         title, 
         description, 
         status, 

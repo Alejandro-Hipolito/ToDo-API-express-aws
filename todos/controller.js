@@ -6,8 +6,27 @@ let tasks = []
 
 const createTask = async (request, response) => {
     try {
+        const { title, description, status } = request.body;
+
+        // Verificar campos requeridos
+        if (!title || !description || !status) {
+            return response.status(400).json({
+                successful: false,
+                error: 'Faltan campos obligatorios.'
+            });
+        }
+
+        // Verificar status
+        if (status !== 'pendiente' && status !== 'completado' && status !== 'en progreso') {
+            return response.status(400).json({
+                successful: false,
+                error: 'El estado de la tarea debe ser "pendiente", "completado" o "en progreso".',
+            });
+        }
+
         const sql = 'INSERT INTO tasks(title, description, status, createdAt) VALUES (?, ?, ?, ?)';
-        const values = [title, description, status, task.createdAt];
+        const values = [title, description, status, new Date().toISOString()];
+
         const [results, fields] = await db.promise().query(sql, values);
 
         const insertedTask = await db.promise().query('SELECT * FROM tasks WHERE id = ?', [results.insertId]);
@@ -18,7 +37,6 @@ const createTask = async (request, response) => {
             data: insertedTask[0][0]
         });
 
-        
     } catch (error) {
         console.error('Error:', error.message);
         response.status(500).json({
@@ -28,6 +46,7 @@ const createTask = async (request, response) => {
         });
     }
 };
+
 
 
 

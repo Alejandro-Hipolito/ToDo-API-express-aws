@@ -1,5 +1,5 @@
 const express = require('express');
-const todoRoutes = require('./taskRoutes');
+const todoRoutes = require('./todos/routes');
 
 const PORT = process.env.PORT || 3000;
 

@@ -35,11 +35,6 @@ const createTask = (request, response) => {
         });
     }
 
-    // Obtener fecha de creación
-    const todayDate = new Date();
-    const createdAtDate = todayDate.toLocaleDateString('es-ES');
-    const createdAtTime = todayDate.toLocaleTimeString('es-ES');
-
     // Verificar status
     if (status !== 'pendiente' && status !== 'completado' && status !== 'en progreso') {
         return response.status(400).json({
@@ -48,12 +43,19 @@ const createTask = (request, response) => {
         });
     }
 
+    const task = {
+        title,
+        description,
+        status,
+        createdAt: new Date().toISOString()
+    };
+
     // Establecer conexión
     const db = request.db;
 
     // Insertar datos 
     const sql = 'INSERT INTO tasks(title, description, status, createdAt) VALUES (?, ?, ?, ?)';
-    const values = [title, description, status, `${createdAtDate} at ${createdAtTime}`];
+    const values = [title, description, status, task.createdAt];
 
     db.query(sql, values, (err, results) => {
         if (err) {
@@ -88,6 +90,7 @@ const createTask = (request, response) => {
         });
     });
 };
+
 
 
 

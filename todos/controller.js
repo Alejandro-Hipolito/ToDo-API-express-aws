@@ -25,73 +25,72 @@ let tasks = []
 
 
 const createTask = (request, response) => {
-    const {title, description, status} = request.body;
+    const { title, description, status } = request.body;
 
-    //Verificar campos requeridos
-    if( !title || !description || !status) {
+    // Verificar campos requeridos
+    if (!title || !description || !status) {
         return response.status(400).json({
             successful: false,
             error: 'Faltan campos obligatorios.'
-        })
-            
+        });
     }
 
-    //Obtener fecha de creación
-    const todayDate = new Date()
-    const createdAtDate = todayDate.toLocaleDateString('es-ES')
-    const createdAtTime = todayDate.toLocaleTimeString('es-ES')
+    // Obtener fecha de creación
+    const todayDate = new Date();
+    const createdAtDate = todayDate.toLocaleDateString('es-ES');
+    const createdAtTime = todayDate.toLocaleTimeString('es-ES');
 
     // Verificar status
-    if(status !== 'pendiente' && status !== 'completado' && status !== 'en progreso'){
+    if (status !== 'pendiente' && status !== 'completado' && status !== 'en progreso') {
         return response.status(400).json({
             successful: false,
-            error: 'El estado de la tarea debe ser "pendiente" , "completado" o "en progreso" .',
-        })
+            error: 'El estado de la tarea debe ser "pendiente", "completado" o "en progreso".',
+        });
     }
 
+    // Establecer conexión
+    const db = request.db;
 
-    const newTask = {
-        // id: tasks.length +1, //Testeo
-        title, 
-        description, 
-        status, 
-        createdAt: `${createdAtDate} at ${createdAtTime}`
-    }
+    // Insertar datos 
+    const sql = 'INSERT INTO tasks(title, description, status, createdAt) VALUES (?, ?, ?, ?)';
+    const values = [title, description, status, `${createdAtDate} at ${createdAtTime}`];
 
-    //establecer conexión
-    const db = request.db
+    db.query(sql, values, (err, results) => {
+        if (err) {
+            console.error('Error al insertar la tarea en la base de datos:', err.message);
+            return response.status(500).json({
+                successful: false,
+                error: 'Error al insertar la tarea en la base de datos.',
+                details: err 
+            });
+        }
 
-    //insertar datos
-    db.query('INSERT INTO tasks(title, description, status, createdAt) VALUES (?, ?, ?, ?)',
-        [newTask.title, newTask.description, newTask.status, newTask.createdAt],
-        (err, results) => {
-            if (err) {
-                console.error('Error al insertar la tarea en la base de datos:', err.message);
+        const insertedTaskId = results.insertId;
+
+        // Obtener la tarea  insertada desde la bd
+        db.query('SELECT * FROM tasks WHERE id = ?', [insertedTaskId], (selectErr, selectResults) => {
+            if (selectErr) {
+                console.error('Error al obtener la tarea recién insertada:', selectErr.message);
                 return response.status(500).json({
                     successful: false,
-                    error: 'Error al insertar la tarea en la base de datos.'
+                    error: 'Error al obtener la tarea recién insertada de la base de datos.',
+                    details: selectErr
                 });
             }
 
-            newTask.id = results.insertId;
+            const newTask = selectResults[0];
+
             response.json({
                 successful: true,
                 message: 'Nueva tarea creada exitosamente',
                 data: newTask
             });
         });
+    });
+};
 
-    // response.json({
-    //     successful:true,
-    //     message: 'New task created successfully',
-    //     data: newTask
 
-    //     // data:newTask,
-    // })
 
-    // tasks.push(newTask); //Testeo en local
-
-}
 
 const getTasks = (request, response) => {
     response.json({

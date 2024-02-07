@@ -3,11 +3,11 @@ const { createTodo, getTodos, hello, createTask, getTasks, getTask, editTask, de
 const router = express.Router()
 
 
-router.post('/', createTodo) 
-router.post('/create-task', createTask)
+// router.post('/', createTodo) 
+// router.post('/create-task', createTask)
 
-router.get('/', getTodos)
-router.get('/hello', hello)
+// router.get('/', getTodos)
+// router.get('/hello', hello)
 
 router.get('/tasks', getTasks )
 router.get('/task/:id', getTask)

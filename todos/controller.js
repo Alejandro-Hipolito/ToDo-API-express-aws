@@ -2,26 +2,26 @@ const express = require('express')
 
 let tasks = []
 
-const createTodo = (request, response) => {
-    response.json({
-        successful: true,
-        data: request.body,
-    })
-}
+// const createTodo = (request, response) => {
+//     response.json({
+//         successful: true,
+//         data: request.body,
+//     })
+// }
 
-const getTodos = (request, response) => {
-    response.json({
-        successful:true,
-        data: [{id: 1, text: 'Welcome to the home page'}],
-    })
-}
+// const getTodos = (request, response) => {
+//     response.json({
+//         successful:true,
+//         data: [{id: 1, text: 'Welcome to the home page'}],
+//     })
+// }
 
-const hello = (request, response) => {
-    response.json({
-        successful: true,
-        data: [{id: 1, text: 'Learn sss'}]
-    })
-}
+// const hello = (request, response) => {
+//     response.json({
+//         successful: true,
+//         data: [{id: 1, text: 'Learn sss'}]
+//     })
+// }
 
 
 const createTask = (request, response) => {
@@ -58,12 +58,38 @@ const createTask = (request, response) => {
         createdAt: `${createdAtDate} at ${createdAtTime}`
     }
 
-    response.json({
-        successful:true,
-        data:newTask,
-    })
+    //establecer conexión
+    const db = request.db
 
-    tasks.push(newTask); //Testeo
+    //insertar datos
+    db.query('INSERT INTO tasks(title, description, status, createdAt) VALUES (?, ?, ?, ?)',
+        [newTask.title, newTask.description, newTask.status, newTask.createdAt],
+        (err, results) => {
+            if (err) {
+                console.error('Error al insertar la tarea en la base de datos:', err.message);
+                return response.status(500).json({
+                    successful: false,
+                    error: 'Error al insertar la tarea en la base de datos.'
+                });
+            }
+
+            newTask.id = results.insertId;
+            response.json({
+                successful: true,
+                message: 'Nueva tarea creada exitosamente',
+                data: newTask
+            });
+        });
+
+    // response.json({
+    //     successful:true,
+    //     message: 'New task created successfully',
+    //     data: newTask
+
+    //     // data:newTask,
+    // })
+
+    // tasks.push(newTask); //Testeo en local
 
 }
 
@@ -119,7 +145,7 @@ const editTask = (request, response) => {
 
     response.json({
         successful: true,
-        data: updatedTask
+        newData: updatedTask
     })
 
 
@@ -151,9 +177,9 @@ const deleteTask = (request, response) => {
 
 
 module.exports = {
-    createTodo,
-    getTodos,
-    hello,
+    // createTodo,
+    // getTodos,
+    // hello,
     createTask,
     getTasks,
     getTask,
